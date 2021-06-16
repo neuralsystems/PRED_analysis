@@ -39,3 +39,6 @@ octave-workspace
 
 # Local History for Visual Studio Code
 .history/
+
+# other files
+*~

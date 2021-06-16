@@ -84,39 +84,6 @@ if ~exist(file_name, 'file') || recalculate
 end
 clearvars -except recalculate
 
-% [CVBEHKER] Behavioral data from Kermen et al 2020, compared with PC
-file_name = 'data\class_vector_data_behavioral_kermen.mat';
-if ~exist(file_name, 'file') || recalculate
-    t = tic;     
-    fprintf('Running [CVBEHKER]...');
-    kermen();
-    processed_file = 'data\kermen_2020\processed_data_kermen';
-    load(processed_file, 'processed_data', 'behaviors')
-    
-    n_rand = 1000;
-    metrics = {'pred_cv', 'pc'};
-    n_metric = length(metrics);
-    n_behavior = length(behaviors);
-    measure.original = cell(n_behavior, n_metric);
-    measure.random = zeros(n_rand, n_behavior, n_metric);
-    rng(2267)
-    for i_behavior = 1:n_behavior
-        temp_data = num2cell(squeeze(nanmean(processed_data(i_behavior, :, :, :), 2)));
-        for i_metric = 1:n_metric
-            measure.original{i_behavior, i_metric} = computesimilaritymetric(temp_data, metrics{i_metric});
-        end
-        for i_rand = 1:n_rand
-            rand_data = shuffledata(temp_data);
-            for i_metric = 1:n_metric
-                measure.random(i_rand, i_behavior, i_metric) = computeultimatemean(computesimilaritymetric(rand_data, metrics{i_metric}));
-            end
-        end
-    end
-    save(file_name, 'measure', 'n_*', 'metrics', 'behavior*')
-    fprintf('Done!! Time: %s\n', duration([0, 0, toc(t)]));
-end
-clearvars -except recalculate
-
 % [CVBEHHON] Time-Individual Behavioral data from Honegger et al. 2019, compared with PC
 file_name = 'data\class_vector_data_behavioral_honegger.mat';
 if ~exist(file_name, 'file') || recalculate
@@ -674,35 +641,30 @@ if ~exist(file_name, 'file') || recalculate
     load('data\schlegel_2021\processed_data_schlegel.mat', 'processed_data', 'id_*', 'n_*');
     measure.full = computesimilaritymetric(processed_data.full, 'pred_cv');
     for i_database = 1:n_database
-        measure.connectivity{i_database} = computesimilaritymetric(squeeze(processed_data.connectivity(i_database, :, :, :)), 'pred_cs');
         measure.celltype{i_database} = computesimilaritymetric(squeeze(processed_data.celltype(i_database, :, :, :)), 'pred_cs');
         measure.tract{i_database} = computesimilaritymetric(squeeze(processed_data.tract(i_database, :, :, :)), 'pred_cs');
         measure.region{i_database} = computesimilaritymetric(squeeze(processed_data.region(i_database, :, :, :)), 'pred_cs');
     end
-    measure.by_connectivity = nan(1, n_connectivity);
-    for i_connectivity = 1:n_connectivity
-        temp_data = removeallnandims(squeeze(processed_data.connectivity(:, :, i_connectivity, :)));
-        if size(temp_data, 1) >= 2 && size(temp_data, 2) >= 2
-            measure.by_connectivity(i_connectivity) = computesimilaritymetric(temp_data, 'pred_cv');
-        end
-    end
     measure.by_celltype = nan(1, n_celltype);
     for i_celltype = 1:n_celltype
-        temp_data = removeallnandims(squeeze(processed_data.celltype(:, :, i_celltype, :)));
+        i_connectivity = contains(id_connectivity, id_celltype{i_celltype});
+        temp_data = removeallnandims(processed_data.full(:, i_connectivity, :));
         if size(temp_data, 1) >= 2 && size(temp_data, 2) >= 2
             measure.by_celltype(i_celltype) = computesimilaritymetric(temp_data, 'pred_cv');
         end
     end
     measure.by_tract = nan(1, n_tract);
     for i_tract = 1:n_tract
-        temp_data = removeallnandims(squeeze(processed_data.tract(:, :, i_tract, :)));
+        i_connectivity = contains(id_connectivity, id_tract{i_tract});
+        temp_data = removeallnandims(processed_data.full(:, i_connectivity, :));
         if size(temp_data, 1) >= 2 && size(temp_data, 2) >= 2
             measure.by_tract(i_tract) = computesimilaritymetric(temp_data, 'pred_cv');
         end
     end
     measure.by_region = nan(1, n_region);
     for i_region = 1:n_region
-        temp_data = removeallnandims(squeeze(processed_data.region(:, :, i_region, :)));
+        i_connectivity = contains(id_connectivity, id_region{i_region});
+        temp_data = removeallnandims(processed_data.full(:, i_connectivity, :));
         if size(temp_data, 1) >= 2 && size(temp_data, 2) >= 2
             measure.by_region(i_region) = computesimilaritymetric(temp_data, 'pred_cv');
         end

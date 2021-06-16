@@ -47,7 +47,6 @@ if ~exist(file_name, 'file') || recalc
     id_celltype_lhn = cellfun(@(x) id_lhn(contains(id_lhn, x)), id_celltype, 'UniformOutput', false);
     n_glom = length(id_glom);
     n_database = length(id_database);
-    n_lhn = length(id_lhn);
     n_connectivity = length(id_connectivity);
     n_celltype = length(id_celltype);
     n_tract = length(id_tract);
@@ -58,15 +57,13 @@ if ~exist(file_name, 'file') || recalc
     n_celltype_lhn = max(cellfun(@length, id_celltype_lhn));
     
     % size decided using maximum observed values
-    processed_data.full = nan(n_database, n_lhn, n_glom);
-    processed_data.celltype = nan(n_database, n_connectivity_lhn, n_connectivity, n_glom);
+    processed_data.full = nan(n_database, n_connectivity_lhn, n_connectivity, n_glom);
     processed_data.celltype = nan(n_database, n_celltype_lhn, n_celltype, n_glom);
     processed_data.tract = nan(n_database, n_tract_lhn, n_tract, n_glom);
     processed_data.region = nan(n_database, n_region_lhn, n_region, n_glom);
     
     for i_cell = 1:size(temp_data, 1)
         i_database = contains(id_database, temp_data{i_cell, 7});
-        i_lhn = contains(id_lhn, temp_data{i_cell, 9});
         i_glom = contains(id_glom, temp_data{i_cell, 2});
         i_connectivity = contains(id_connectivity, temp_data{i_cell, 6});
         i_celltype = contains(id_celltype, temp_data{i_cell, 5});
@@ -76,15 +73,13 @@ if ~exist(file_name, 'file') || recalc
         i_tract_lhn = contains(id_tract_lhn{i_tract}, temp_data{i_cell, 9});
         i_region_lhn = contains(id_region_lhn{i_region}, temp_data{i_cell, 9});
         i_celltype_lhn = contains(id_celltype_lhn{i_celltype}, temp_data{i_cell, 9});
-        
-        processed_data.full(i_database, i_lhn, i_glom) = temp_data{i_cell, 4};
-        processed_data.connectivity(i_database, i_connectivity_lhn, i_connectivity, i_glom) = temp_data{i_cell, 4};
+
+        processed_data.full(i_database, i_connectivity_lhn, i_connectivity, i_glom) = temp_data{i_cell, 4};
         processed_data.celltype(i_database, i_celltype_lhn, i_celltype, i_glom) = temp_data{i_cell, 4};
         processed_data.tract(i_database, i_tract_lhn, i_tract, i_glom) = temp_data{i_cell, 4};
         processed_data.region(i_database, i_region_lhn, i_region, i_glom) = temp_data{i_cell, 4};
     end
-    
-    
+    processed_data.full = squeeze(nanmean(processed_data.full, 2));
     save(file_name, 'processed_data', 'id_*', 'n_*')
 end
 end
