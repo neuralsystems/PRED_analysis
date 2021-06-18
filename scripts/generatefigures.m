@@ -98,8 +98,8 @@ if any(strcmp('fig-1', plots_to_gen)) || any(strcmp('all', plots_to_gen))
         [~, p] = ttest2(squeeze(raw_data_1.measure(1, :, i_metric)), squeeze(raw_data_1.measure(2, :, i_metric)));
         mu=mean(raw_data_1.measure(:, :, i_metric), 2);
         text(i_metric, 0.8, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
-        text(i_metric - 0.2, 0.7, sprintf('mu=%.2g', mu(1)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
-        text(i_metric + 0.2, 0.6, sprintf('mu=%.2g', mu(2)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        text(i_metric - 0.2, 0.7, sprintf('mu=%.4f', mu(1)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        text(i_metric + 0.2, 0.6, sprintf('mu=%.4f', mu(2)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
         text(i_metric, -0.575, id_metrics_1{i_metric}, 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
         obj_plot(1, 1).results.stat_violin(1).point_handle(i_metric).MarkerFaceColor = options_1.color{2}(2 * i_metric - 1, :);
         obj_plot(1, 1).results.stat_violin(1).fill_handle(i_metric).FaceColor = options_1.color{2}(2 * i_metric - 1, :);
@@ -152,6 +152,8 @@ if any(strcmp('fig-2', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     data_color = data_x;
     coeff_var = std(data_y, [], 1) ./ mean(data_y, 1);
     mu=mean(data_y, 1);
+    sigma = std(data_y, [], 1);
+    [~, tt] = arrayfun(@(x) ttest(data_y(:, x), 0), 1:2);
     obj_plot(1, 1) = gramm('x', data_x(:), 'y', data_y(:), 'color', data_color(:));
     obj_plot(1, 1).stat_violin(options_2.stat_violin{:});
     obj_plot(1, 1).set_names('y', 'Similarity between time-points', 'x', '');
@@ -192,7 +194,7 @@ if any(strcmp('fig-2', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     obj_plot(1, 1).facet_axes_handles.XAxis.Visible = 'off';
     for i_metric = 1:2
         text(i_metric, 0.55, sprintf('COV = %.4f', coeff_var(i_metric)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_2.extra_text{:});
-        text(i_metric, 0.5, sprintf('mu=%.4f', mu(i_metric)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_2.extra_text{:});
+        text(i_metric, 0.5, sprintf('%.4f±%.4f\nP=%.2g', mu(i_metric), sigma(i_metric), tt(i_metric)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_2.extra_text{:});
         text(i_metric, -0.03, id_metrics{i_metric}, 'Parent', obj_plot(1, 1).facet_axes_handles, options_2.xlabels{:});
     end
     
@@ -314,8 +316,8 @@ if any(strcmp('fig-3', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     
     for i_metric = 1:2
         text(i_metric, 0.8, sprintf('P=%.2g', p(i_metric)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
-        text(i_metric - 0.2, 0.7, sprintf('mu=%.2g', mu(1, i_metric)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
-        text(i_metric + 0.2, 0.6, sprintf('mu=%.2g', mu(2, i_metric)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
+        text(i_metric - 0.2, 0.7, sprintf('mu=%.4f', mu(1, i_metric)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
+        text(i_metric + 0.2, 0.6, sprintf('mu=%.4f', mu(2, i_metric)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
         text(i_metric, -0.05, id_metrics{i_metric}, 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
         obj_plot(1, 1).results.stat_violin(1).point_handle(i_metric).MarkerFaceColor = options_1.color{2}(2 * i_metric - 1, :);
         obj_plot(1, 1).results.stat_violin(1).fill_handle(i_metric).FaceColor = options_1.color{2}(2 * i_metric - 1, :);
@@ -337,7 +339,7 @@ if any(strcmp('fig-3', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     text(1, 0.58, sprintf('P (vs vector) = %.2g', p), 'Parent', obj_plot(1, 4).facet_axes_handles, options_4.extra_text{:});
     [~, p] = ttest(data_y, 0);
     text(1, 0.53, sprintf('P (vs 0) = %.2g', p), 'Parent', obj_plot(1, 4).facet_axes_handles, options_4.extra_text{:});
-    text(1, 0.48, sprintf('mu=%.2g', mean(data_y)), 'Parent', obj_plot(1, 4).facet_axes_handles, options_4.extra_text{:});
+    text(1, 0.48, sprintf('%.4f±%.4f', mean(data_y), std(data_y)), 'Parent', obj_plot(1, 4).facet_axes_handles, options_4.extra_text{:});
     data_x = [0.7 1.3 nan];
     data_y = [y y nan];
     obj_plot(1, 4).update('x', data_x, 'y', data_y);
@@ -345,7 +347,7 @@ if any(strcmp('fig-3', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     obj_plot(1, 4).set_line_options('styles', {'--'});
     obj_plot(1, 4).draw();
     text(1.2, y + 0.02, 'vector', 'Parent', obj_plot(1, 4).facet_axes_handles, options_4.xlabels{:}, 'Color', options_4.color{2}(1, :));
-    text(0.8, y + 0.02, sprintf('mu=%.2g', y), 'Parent', obj_plot(1, 4).facet_axes_handles, options_4.xlabels{:}, 'Color', options_4.color{2}(1, :));
+    text(0.8, y + 0.02, sprintf('mu=%.4f', y), 'Parent', obj_plot(1, 4).facet_axes_handles, options_4.xlabels{:}, 'Color', options_4.color{2}(1, :));
     
     annotation(handle_fig, 'textbox', [0.00 0.97 0.05 0.05], 'String', 'a', default_options.annotation{:});
     annotation(handle_fig, 'textbox', [0.27 0.97 0.05 0.05], 'String', 'b', default_options.annotation{:});
@@ -434,8 +436,8 @@ if any(strcmp('fig-4', plots_to_gen)) || any(strcmp('all', plots_to_gen))
         obj_plot(1, i_metric + 5).facet_axes_handles.XAxis.Visible = 'off';
     end
     text(1, -0.33, id_metrics{1}, 'Parent', obj_plot(1, 6).facet_axes_handles, options_2.xlabels{:});
-    text(1 - 0.2, -0.2, sprintf('mu=%.2g', mu(1, 1)), 'Parent', obj_plot(1, 6).facet_axes_handles, options_2.xlabels{:});
-    text(1 + 0.2, -0.25, sprintf('mu=%.2g', mu(2, 1)), 'Parent', obj_plot(1, 6).facet_axes_handles, options_2.xlabels{:});
+    text(1 - 0.2, -0.2, sprintf('mu=%.4f', mu(1, 1)), 'Parent', obj_plot(1, 6).facet_axes_handles, options_2.xlabels{:});
+    text(1 + 0.2, -0.25, sprintf('mu=%.4f', mu(2, 1)), 'Parent', obj_plot(1, 6).facet_axes_handles, options_2.xlabels{:});
     y_lims = getlimoptions('Y', [-0.3 0.3], 3, '%.1f');
     set(obj_plot(1, 6).facet_axes_handles, y_lims{:});
     [~, p] = ttest2(squeeze(raw_data_2.measure(1, :, 1)), squeeze(raw_data_2.measure(2, :, 1)));
@@ -448,40 +450,40 @@ if any(strcmp('fig-4', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     obj_plot(1, 6).legend_axe_handle.Children(2).LineWidth = 6;
     
     text(1, -0.05, id_metrics{2}, 'Parent', obj_plot(1, 7).facet_axes_handles, options_2.xlabels{:});
-    text(1 - 0.2, 0.2, sprintf('mu=%.2g', mu(1, 2)), 'Parent', obj_plot(1, 7).facet_axes_handles, options_2.xlabels{:});
-    text(1 + 0.2, 0.15, sprintf('mu=%.2g', mu(2, 2)), 'Parent', obj_plot(1, 7).facet_axes_handles, options_2.xlabels{:});
+    text(1 - 0.2, 0.2, sprintf('mu=%.4f', mu(1, 2)), 'Parent', obj_plot(1, 7).facet_axes_handles, options_2.xlabels{:});
+    text(1 + 0.2, 0.15, sprintf('mu=%.4f', mu(2, 2)), 'Parent', obj_plot(1, 7).facet_axes_handles, options_2.xlabels{:});
     y_lims = getlimoptions('Y', [0 1], 3, '%.1f');
     set(obj_plot(1, 7).facet_axes_handles, y_lims{:});
     [~, p] = ttest2(squeeze(raw_data_2.measure(1, :, 2)), squeeze(raw_data_2.measure(2, :, 2)));
     text(1, 0.9, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 7).facet_axes_handles, options_2.extra_text{:});
     
     text(1, -0.44, id_metrics{3}, 'Parent', obj_plot(1, 8).facet_axes_handles, options_2.xlabels{:});
-    text(1 - 0.2, -0.2, sprintf('mu=%.2g', mu(1, 3)), 'Parent', obj_plot(1, 8).facet_axes_handles, options_2.xlabels{:});
-    text(1 + 0.2, -0.25, sprintf('mu=%.2g', mu(2, 3)), 'Parent', obj_plot(1, 8).facet_axes_handles, options_2.xlabels{:});
+    text(1 - 0.2, -0.2, sprintf('mu=%.4f', mu(1, 3)), 'Parent', obj_plot(1, 8).facet_axes_handles, options_2.xlabels{:});
+    text(1 + 0.2, -0.25, sprintf('mu=%.4f', mu(2, 3)), 'Parent', obj_plot(1, 8).facet_axes_handles, options_2.xlabels{:});
     y_lims = getlimoptions('Y', [-0.4 0.4], 3, '%.1f');
     set(obj_plot(1, 8).facet_axes_handles, y_lims{:});
     [~, p] = ttest2(squeeze(raw_data_2.measure(1, :, 3)), squeeze(raw_data_2.measure(2, :, 3)));
     text(1, 0.35, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 8).facet_axes_handles, options_2.extra_text{:});
     
     text(1, -0.002, id_metrics{4}, 'Parent', obj_plot(1, 9).facet_axes_handles, options_2.xlabels{:});
-    text(1 - 0.2, 0.005, sprintf('mu=%.2g', mu(1, 4)), 'Parent', obj_plot(1, 9).facet_axes_handles, options_2.xlabels{:});
-    text(1 + 0.2, 0.003, sprintf('mu=%.2g', mu(2, 4)), 'Parent', obj_plot(1, 9).facet_axes_handles, options_2.xlabels{:});
+    text(1 - 0.2, 0.005, sprintf('mu=%.4f', mu(1, 4)), 'Parent', obj_plot(1, 9).facet_axes_handles, options_2.xlabels{:});
+    text(1 + 0.2, 0.003, sprintf('mu=%.4f', mu(2, 4)), 'Parent', obj_plot(1, 9).facet_axes_handles, options_2.xlabels{:});
     y_lims = getlimoptions('Y', [0 0.04], 3, '%.2f');
     set(obj_plot(1, 9).facet_axes_handles, y_lims{:});
     [~, p] = ttest2(squeeze(raw_data_2.measure(1, :, 4)), squeeze(raw_data_2.measure(2, :, 4)));
     text(1, 0.028, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 9).facet_axes_handles, options_2.extra_text{:});
     
     text(1, -5, id_metrics{5}, 'Parent', obj_plot(1, 10).facet_axes_handles, options_2.xlabels{:});
-    text(1 - 0.2, 15, sprintf('mu=%.2g', mu(1, 5)), 'Parent', obj_plot(1, 10).facet_axes_handles, options_2.xlabels{:});
-    text(1 + 0.2, 10, sprintf('mu=%.2g', mu(2, 5)), 'Parent', obj_plot(1, 10).facet_axes_handles, options_2.xlabels{:});
+    text(1 - 0.2, 15, sprintf('mu=%.4f', mu(1, 5)), 'Parent', obj_plot(1, 10).facet_axes_handles, options_2.xlabels{:});
+    text(1 + 0.2, 10, sprintf('mu=%.4f', mu(2, 5)), 'Parent', obj_plot(1, 10).facet_axes_handles, options_2.xlabels{:});
     y_lims = getlimoptions('Y', [0 100], 3, '%d');
     set(obj_plot(1, 10).facet_axes_handles, y_lims{:});
     [~, p] = ttest2(squeeze(raw_data_2.measure(1, :, 5)), squeeze(raw_data_2.measure(2, :, 5)));
     text(1, 80, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 10).facet_axes_handles, options_2.extra_text{:});
     
     text(1, -0.4, id_metrics{6}, 'Parent', obj_plot(1, 11).facet_axes_handles, options_2.xlabels{:});
-    text(1 - 0.2, 2, sprintf('mu=%.2g', mu(1, 6)), 'Parent', obj_plot(1, 11).facet_axes_handles, options_2.xlabels{:});
-    text(1 + 0.2, 1.5, sprintf('mu=%.2g', mu(2, 6)), 'Parent', obj_plot(1, 11).facet_axes_handles, options_2.xlabels{:});
+    text(1 - 0.2, 2, sprintf('mu=%.4f', mu(1, 6)), 'Parent', obj_plot(1, 11).facet_axes_handles, options_2.xlabels{:});
+    text(1 + 0.2, 1.5, sprintf('mu=%.4f', mu(2, 6)), 'Parent', obj_plot(1, 11).facet_axes_handles, options_2.xlabels{:});
     y_lims = getlimoptions('Y', [0 8], 3, '%d');
     set(obj_plot(1, 11).facet_axes_handles, y_lims{:});
     [~, p] = ttest2(squeeze(raw_data_2.measure(1, :, 6)), squeeze(raw_data_2.measure(2, :, 6)));
@@ -707,10 +709,12 @@ if any(strcmp('fig-7', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     [~, p] = cellfun(@(x) ttest(x(:), 0), raw_data_1.measure);
     p = p(id_sorted);
     means = cellfun(@nanmean, raw_data_1.measure);
+    sigmas = cellfun(@nanstd, raw_data_1.measure);
     means = means(id_sorted);
+    sigmas = sigmas(id_sorted);
     for i_odor = 1:raw_data_1.n_odor
-        text(i_odor, means(i_odor) + 0.2, sprintf('P=%.2g', p(i_odor)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
-        text(i_odor, means(i_odor) - 0.2, sprintf('P=%.2g', means(i_odor)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        text(i_odor, means(i_odor) + (-1) ^ mod(i_odor, 2) * 0.3, sprintf('P=%.2g', p(i_odor)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        text(i_odor, means(i_odor) + (-1) ^ mod(i_odor, 2) * 0.2, sprintf('%.4f±%.4f', means(i_odor), sigmas(i_odor)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
         text(i_odor, -0.575, id_odor_sorted{i_odor}, 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
     end
     obj_plot(1, 1).facet_axes_handles.XAxis.Visible = 'off';
@@ -834,39 +838,43 @@ if any(strcmp('fig-8', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     id_group = {'celltype', 'tract', 'region'};
     for i_group = 1:length(id_group)
         [~, p] = ttest(raw_data_1.measure.(['by_', id_group{i_group}])(:), 0);
-        mu=nanmean(raw_data_1.measure.(['by_', id_group{i_group}])(:));
+        mu = nanmean(raw_data_1.measure.(['by_', id_group{i_group}])(:));
+        sigma = nanstd(raw_data_1.measure.(['by_', id_group{i_group}])(:));
         text(i_group, 0.9, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
-        text(i_group, 0.8, sprintf('mu=%.2g', mu), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        text(i_group, 0.8, sprintf('%.4f±%.4f', mu, sigma), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
         text(i_group, -0.05, id_group{i_group}, 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
     end
     text(3.5, raw_data_1.measure.full + 0.06, 'ungrouped', 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:}, 'Color', options_1.color{2}(1, :));
-    text(1.5, raw_data_1.measure.full + 0.06, sprintf('mu=%.2g',raw_data_1.measure.full), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:}, 'Color', options_1.color{2}(1, :));
+    text(1.5, raw_data_1.measure.full + 0.06, sprintf('mu=%.4f',raw_data_1.measure.full), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:}, 'Color', options_1.color{2}(1, :));
     obj_plot(1).facet_axes_handles.Children(10).LineWidth = 3;
     obj_plot(1, 1).facet_axes_handles.XAxis.Visible = 'off';
     
     for i_database = 1:length(raw_data_1.id_database)
         [~, p] = ttest(raw_data_1.measure.celltype{i_database}(:), 0);
-        mu=nanmean(raw_data_1.measure.celltype{i_database}(:));
+        mu = nanmean(raw_data_1.measure.celltype{i_database}(:));
+        sigma = nanstd(raw_data_1.measure.celltype{i_database}(:));
         text(i_database, 0.9, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.extra_text{:});
-        text(i_database, 0.8, sprintf('mu=%.2g', mu), 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.extra_text{:});
+        text(i_database, 0.8, sprintf('%.4f±%.4f', mu, sigma), 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.extra_text{:});
         text(i_database, -0.575, raw_data_1.id_database{i_database}, 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.xlabels{:});
     end
     obj_plot(1, 2).facet_axes_handles.XAxis.Visible = 'off';
     
     for i_database = 1:length(raw_data_1.id_database)
         [~, p] = ttest(raw_data_1.measure.tract{i_database}(:), 0);
-        mu=nanmean(raw_data_1.measure.tract{i_database}(:));
+        mu = nanmean(raw_data_1.measure.tract{i_database}(:));
+        sigma = nanstd(raw_data_1.measure.tract{i_database}(:));
         text(i_database, 0.9, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 3).facet_axes_handles, options_1.extra_text{:});
-        text(i_database, 0.8, sprintf('mu=%.2g', mu), 'Parent', obj_plot(1, 3).facet_axes_handles, options_1.extra_text{:});
+        text(i_database, 0.8, sprintf('%.4f±%.4f', mu, sigma), 'Parent', obj_plot(1, 3).facet_axes_handles, options_1.extra_text{:});
         text(i_database, -0.575, raw_data_1.id_database{i_database}, 'Parent', obj_plot(1, 3).facet_axes_handles, options_1.xlabels{:});
     end
     obj_plot(1, 3).facet_axes_handles.XAxis.Visible = 'off';
     
     for i_database = 1:length(raw_data_1.id_database)
         [~, p] = ttest(raw_data_1.measure.region{i_database}(:), 0);
-        mu=nanmean(raw_data_1.measure.region{i_database}(:));
+        mu = nanmean(raw_data_1.measure.region{i_database}(:));
+        sigma = nanstd(raw_data_1.measure.region{i_database}(:));
         text(i_database, 0.9, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 4).facet_axes_handles, options_1.extra_text{:});
-        text(i_database, 0.8, sprintf('mu=%.2g', mu), 'Parent', obj_plot(1, 4).facet_axes_handles, options_1.extra_text{:});
+        text(i_database, 0.8, sprintf('%.4f±%.4f', mu, sigma), 'Parent', obj_plot(1, 4).facet_axes_handles, options_1.extra_text{:});
         text(i_database, -0.575, raw_data_1.id_database{i_database}, 'Parent', obj_plot(1, 4).facet_axes_handles, options_1.xlabels{:});
     end
     obj_plot(1, 4).facet_axes_handles.XAxis.Visible = 'off';
@@ -962,8 +970,8 @@ if any(strcmp('fig-s1', plots_to_gen)) || any(strcmp('all', plots_to_gen))
         [~, p] = ttest2(squeeze(raw_data_1.measure(1, :, i_metric + 6)), squeeze(raw_data_1.measure(2, :, i_metric + 6)));
         text(i_metric, 4.5, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
         mu=mean(raw_data_1.measure(:, :, i_metric + 6), 2);
-        text(i_metric - 0.2, 3.8, sprintf('mu=%.2g', mu(1)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
-        text(i_metric + 0.2, 4, sprintf('mu=%.2g', mu(2)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        text(i_metric - 0.2, 3.8, sprintf('mu=%.4f', mu(1)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        text(i_metric + 0.2, 4, sprintf('mu=%.4f', mu(2)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
         text(i_metric, -0.2, id_metrics_1{i_metric + 6}, 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
         obj_plot(1, 1).results.stat_violin(1).point_handle(i_metric).MarkerFaceColor = options_1.color{2}(2 * i_metric - 1, :);
         obj_plot(1, 1).results.stat_violin(1).fill_handle(i_metric).FaceColor = options_1.color{2}(2 * i_metric - 1, :);
@@ -1072,8 +1080,8 @@ if any(strcmp('fig-s2', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     for i_cell = 1:raw_data_1.n_cell
         for i_metric = 1:2
             text(i_metric, 0.8, sprintf('P=%.2g', p(i_metric, i_cell)), 'Parent', obj_plot(1, i_cell).facet_axes_handles, options_1.xlabels{:});
-            text(i_metric - 0.2, 0.7, sprintf('mu=%.2g', mu(1, i_metric, i_cell)), 'Parent', obj_plot(1, i_cell).facet_axes_handles, options_1.xlabels{:});
-            text(i_metric + 0.2, 0.6, sprintf('mu=%.2g', mu(2, i_metric, i_cell)), 'Parent', obj_plot(1, i_cell).facet_axes_handles, options_1.xlabels{:});
+            text(i_metric - 0.2, 0.7, sprintf('mu=%.4f', mu(1, i_metric, i_cell)), 'Parent', obj_plot(1, i_cell).facet_axes_handles, options_1.xlabels{:});
+            text(i_metric + 0.2, 0.6, sprintf('mu=%.4f', mu(2, i_metric, i_cell)), 'Parent', obj_plot(1, i_cell).facet_axes_handles, options_1.xlabels{:});
             text(i_metric, -0.05, id_metrics{i_metric}, 'Parent', obj_plot(i_cell).facet_axes_handles, options_1.xlabels{:});
             obj_plot(i_cell).results.stat_violin(1).point_handle(i_metric).MarkerFaceColor = options_1.color{2}(2 * i_metric - 1, :);
             obj_plot(i_cell).results.stat_violin(1).fill_handle(i_metric).FaceColor = options_1.color{2}(2 * i_metric - 1, :);
