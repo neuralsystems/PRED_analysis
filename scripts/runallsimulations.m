@@ -675,13 +675,6 @@ end
 clearvars -except recalculate
 end
 
-function data = shuffledata(data)
-[n_vector, n_class] = size(data);
-for i_vec = 1:n_vector
-    data(i_vec, :) = data(i_vec, randperm(n_class, n_class));
-end
-end
-
 function measure = analysenormaldata(processed_data, metrics)
 [n_cell, ~, n_ind, ~] = size(processed_data);
 n_metric = length(metrics);

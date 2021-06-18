@@ -1,4 +1,4 @@
-function processed_data = gupta(params)
+function [processed_data, info_data] = gupta(params)
 
 if nargin < 1
     params.n_bin = 10;

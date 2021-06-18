@@ -123,14 +123,8 @@ if ~exist(file_name, 'file') || recalc
         processed_data(contains(behaviors, 'verticalposition'), i_trial, i_ind, i_odor) = nanmean(vert_pos(index.resp_start:index.resp_end)) - nanmean(vert_pos(index.bg_start:index.bg_end));
     end
     
-    % check calculated value medians with the medians provided in the paper
-    % as supplementary data
-    for i_behavior = 1:n_behavior
-        checkmedians(nanmedian(squeeze(nanmean(processed_data(i_behavior, :, :, :), 2)), 1), ethogram.(behaviors{i_behavior}).median, behaviors{i_behavior})
-    end
-    
     % save file
-    save(file_name, 'info_data', 'processed_data', 'behaviors', 'info_data');
+    save(file_name, 'processed_data', 'behaviors', 'info_data');
 else
     load(file_name, 'processed_data', 'behaviors');
     n_odor = 18;
@@ -186,13 +180,4 @@ angles(abs(angles) > 178) = nan;
 % set a filter for pointing only the big turns..
 turns = abs(angles) > thresh_turn;
 % angles_threshold = angles(turns);
-end
-
-function checkmedians(calc, supp, name)
-if isequal(calc, supp)
-    fprintf("%s matches\n", name)
-else
-    fprintf('%s doesn''t match:\n', name)
-    disp([calc; supp])
-end
 end

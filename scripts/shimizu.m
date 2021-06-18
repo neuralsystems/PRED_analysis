@@ -1,4 +1,4 @@
-function processed_data = shimizu(params)
+function [processed_data, info_data] = shimizu(params)
 
 if nargin < 1
     params.n_bin = 10;
