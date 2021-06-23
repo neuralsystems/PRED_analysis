@@ -114,6 +114,7 @@ if any(strcmp('fig-1', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     obj_plot(1, 1).legend_axe_handle.Children(2).Color = [0.6 0.6 0.6];
     obj_plot(1, 1).legend_axe_handle.Children(2).LineWidth = 6;
     
+    options_2.annotation{8} = 16;
     for i_metric = 1:raw_data_2.n_metric
         data_x = repelem(raw_data_2.range_noise(range_mid(i_mean, i_metric)), raw_data_2.n_sim, 1);
         data_y = squeeze(raw_data_2.measure(i_mean, range_mid(i_mean, i_metric), :, i_metric));
@@ -125,6 +126,7 @@ if any(strcmp('fig-1', plots_to_gen)) || any(strcmp('all', plots_to_gen))
         obj_plot(1, i_metric + 1).set_color_options(options_2.color{:});
         obj_plot(1, i_metric + 1).draw();
         obj_plot(5).results.geom_label_handle{i_metric}.FontSize = 12;
+        annotation(handle_fig, 'textbox', [0.25 * (i_metric - 1) + 0.125 0.4 0.05 0.05], 'String', id_metrics_2{i_metric}, options_2.annotation{:});
     end
     
     annotation(handle_fig, 'textbox', [0.00 0.94 0.05 0.05], 'String', 'a', default_options.annotation{:});
@@ -633,9 +635,12 @@ if any(strcmp('fig-6', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     obj_plot.set_line_options(options_1.line{:});
     obj_plot.set_text_options(options_1.text{:});
     obj_plot.set_order_options(options_1.order{:});
+    
     handle_fig = figure('Position', [0 0 1800 900], 'PaperPositionMode', 'auto');
     rng('default');
     obj_plot.draw();
+    
+    options_1.annotation{8} = 16;
     for i_metric = 1:raw_data_1.n_metric
         data_x = repelem(raw_data_1.range_noise(range_mid(i_metric)), raw_data_1.n_sim, 1);
         data_y = squeeze(raw_data_1.measure(:, range_mid(i_metric), i_metric));
@@ -648,6 +653,8 @@ if any(strcmp('fig-6', plots_to_gen)) || any(strcmp('all', plots_to_gen))
         obj_plot(1, i_metric).set_color_options(options_1.color{:});
         obj_plot(1, i_metric).draw();
         obj_plot(1, 7).results.geom_label_handle{i_metric}.FontSize = 12;
+        [x, y] = ind2sub([2 3], i_metric);
+        annotation(handle_fig, 'textbox', [0.25 * (y - 1) + 0.125, 1.45 - 0.5 * x 0.05 0.05], 'String', id_metrics{i_metric}, options_1.annotation{:});
     end
     y_lims = getlimoptions('Y', [0 1], 3, '%.1f');
     set(obj_plot(1, 1).facet_axes_handles, 'YLim', [-0.1 1.1], y_lims{3:end});
@@ -752,7 +759,11 @@ if any(strcmp('fig-7', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     set(handle_ax, 'FontSize', 16, 'YTick', 1:raw_data_2.n_odor, 'YTickLabel', raw_data_2.info_data.id_odor, 'YTickLabelRotation', 0, 'XTick', 1:raw_data_2.n_glom, 'XTickLabel', raw_data_2.info_data.id_glomerulus, 'XTickLabelRotation', 90, options_2.axis{3:end})
     text(5, 5, sprintf('n = %d/%d = %.2f%%', sum(data_z(:) > 0), length(data_z(:)), sum(data_z(:) > 0) * 100 / length(data_z(:))), 'Parent', handle_ax, options_2.extra_text{:});
     colormap(colors)
-
+    
+    options_2.annotation{8} = 16;
+    annotation(handle_fig, 'textbox', [0.26 0.5 0.05 0.05], 'String', 'control', options_2.annotation{:});
+    annotation(handle_fig, 'textbox', [0.78 0.5 0.05 0.05], 'String', 'serotonin-blocked', options_2.annotation{:});
+    
     annotation(handle_fig, 'textbox', [0.00 0.97 0.05 0.05], 'String', 'a', default_options.annotation{:});
     annotation(handle_fig, 'textbox', [0.00 0.54 0.05 0.05], 'String', 'b', default_options.annotation{:});
     annotation(handle_fig, 'textbox', [0.52 0.54 0.05 0.05], 'String', 'c', default_options.annotation{:});
@@ -777,13 +788,13 @@ if any(strcmp('fig-8', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     obj_plot(1, 1).stat_violin(options_1.stat_violin{:});
     obj_plot(1, 1).geom_hline('yintercept', raw_data_1.measure.full, 'style', 'r--');
     obj_plot(1, 1).set_names('x', '', 'y', 'Similarity between databases');
-    obj_plot(1, 1).set_layout_options('position', [0 0.5 0.98 0.45]);
+    obj_plot(1, 1).set_layout_options('position', [0 0 0.4 0.95]);
     obj_plot(1, 1).set_color_options(options_1.color{:});
     obj_plot(1, 1).set_point_options(options_1.point{:});
     obj_plot(1, 1).set_line_options(options_1.line{:});
     obj_plot(1, 1).set_text_options(options_1.text{:});
     obj_plot(1, 1).set_order_options(options_1.order{:});
-    y_lims = getlimoptions('Y', [0 1], 3, '%.1f');
+    y_lims = getlimoptions('Y', [-0.5 1], 4, '%.1f');
     obj_plot(1, 1).axe_property(y_lims{:}, options_1.axis{:});
     
     % per database grouped by cell type
@@ -792,7 +803,7 @@ if any(strcmp('fig-8', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     obj_plot(1, 2) = gramm('x', data_x(:), 'y', data_y(:));
     obj_plot(1, 2).stat_violin(options_1.stat_violin{:});
     obj_plot(1, 2).set_names('x', '', 'y', 'Separability across cell types');
-    obj_plot(1, 2).set_layout_options('position', [0 0 0.32 0.45]);
+    obj_plot(1, 2).set_layout_options('position', [0.4 0 0.2 0.95]);
     obj_plot(1, 2).set_color_options(options_1.color{:});
     obj_plot(1, 2).set_point_options(options_1.point{:});
     obj_plot(1, 2).set_line_options(options_1.line{:});
@@ -807,7 +818,7 @@ if any(strcmp('fig-8', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     obj_plot(1, 3) = gramm('x', data_x(:), 'y', data_y(:));
     obj_plot(1, 3).stat_violin(options_1.stat_violin{:});
     obj_plot(1, 3).set_names('x', '', 'y', 'Separability across tracts');
-    obj_plot(1, 3).set_layout_options('position', [0.33 0 0.32 0.45]);
+    obj_plot(1, 3).set_layout_options('position', [0.6 0 0.2 0.95]);
     obj_plot(1, 3).set_color_options(options_1.color{:});
     obj_plot(1, 3).set_point_options(options_1.point{:});
     obj_plot(1, 3).set_line_options(options_1.line{:});
@@ -822,7 +833,7 @@ if any(strcmp('fig-8', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     obj_plot(1, 4) = gramm('x', data_x(:), 'y', data_y(:));
     obj_plot(1, 4).stat_violin(options_1.stat_violin{:});
     obj_plot(1, 4).set_names('x', '', 'y', 'Separability across regions');
-    obj_plot(1, 4).set_layout_options('position', [0.67 0 0.32 0.45]);
+    obj_plot(1, 4).set_layout_options('position', [0.8 0 0.2 0.95]);
     obj_plot(1, 4).set_color_options(options_1.color{:});
     obj_plot(1, 4).set_point_options(options_1.point{:});
     obj_plot(1, 4).set_line_options(options_1.line{:});
@@ -831,7 +842,7 @@ if any(strcmp('fig-8', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     y_lims = getlimoptions('Y', [-0.5 1], 4, '%.1f');
     obj_plot(1, 4).axe_property(y_lims{:}, options_1.axis{:});
     
-    handle_fig = figure('Position', [0 0 1000 900]);
+    handle_fig = figure('Position', [0 0 1500 450]);
     rng('default');
     obj_plot.draw();
     
@@ -842,10 +853,10 @@ if any(strcmp('fig-8', plots_to_gen)) || any(strcmp('all', plots_to_gen))
         sigma = nanstd(raw_data_1.measure.(['by_', id_group{i_group}])(:));
         text(i_group, 0.9, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
         text(i_group, 0.8, sprintf('%.4f±%.4f', mu, sigma), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
-        text(i_group, -0.05, id_group{i_group}, 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
+        text(i_group, -0.575, id_group{i_group}, 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
     end
-    text(3.5, raw_data_1.measure.full + 0.06, 'ungrouped', 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:}, 'Color', options_1.color{2}(1, :));
-    text(1.5, raw_data_1.measure.full + 0.06, sprintf('mu=%.4f',raw_data_1.measure.full), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:}, 'Color', options_1.color{2}(1, :));
+    text(1, raw_data_1.measure.full + 0.06, 'ungrouped', 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:}, 'Color', options_1.color{2}(1, :));
+    text(3.5, raw_data_1.measure.full + 0.06, sprintf('mu=%.4f',raw_data_1.measure.full), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:}, 'Color', options_1.color{2}(1, :));
     obj_plot(1).facet_axes_handles.Children(10).LineWidth = 3;
     obj_plot(1, 1).facet_axes_handles.XAxis.Visible = 'off';
     
@@ -879,10 +890,10 @@ if any(strcmp('fig-8', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     end
     obj_plot(1, 4).facet_axes_handles.XAxis.Visible = 'off';
 
-    annotation(handle_fig, 'textbox', [0.00 0.97 0.05 0.05], 'String', 'a', default_options.annotation{:});
-    annotation(handle_fig, 'textbox', [0.00 0.47 0.05 0.05], 'String', 'b', default_options.annotation{:});
-    annotation(handle_fig, 'textbox', [0.32 0.47 0.05 0.05], 'String', 'c', default_options.annotation{:});
-    annotation(handle_fig, 'textbox', [0.66 0.47 0.05 0.05], 'String', 'd', default_options.annotation{:});
+    annotation(handle_fig, 'textbox', [0.00 0.98 0.05 0.05], 'String', 'a', default_options.annotation{:});
+    annotation(handle_fig, 'textbox', [0.39 0.98 0.05 0.05], 'String', 'b', default_options.annotation{:});
+    annotation(handle_fig, 'textbox', [0.59 0.98 0.05 0.05], 'String', 'c', default_options.annotation{:});
+    annotation(handle_fig, 'textbox', [0.79 0.98 0.05 0.05], 'String', 'd', default_options.annotation{:});
     exportgraph(obj_plot, default_options.folder.plot, plot_name, handle_fig)
     clearvars -except plots_to_gen default_options
 end
@@ -907,7 +918,7 @@ if any(strcmp('fig-s1', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     obj_plot(1, 1) = gramm('x', data_x(:), 'y', data_y(:), 'lightness', data_lightness(:));
     obj_plot(1, 1).stat_violin(options_1.stat_violin{:});
     obj_plot(1, 1).set_names('x', '', 'y', 'Similarity between vectors', 'lightness', '');
-    obj_plot(1, 1).set_layout_options('position', [0 0 0.3 0.4], 'legend_position', [0.2 0.22 0.1 0.1]);
+    obj_plot(1, 1).set_layout_options('position', [0 0 0.25 0.4], 'legend', false);
     obj_plot(1, 1).set_color_options(options_1.color{:});
     obj_plot(1, 1).set_point_options(options_1.point{:});
     obj_plot(1, 1).set_line_options(options_1.line{:});
@@ -915,6 +926,22 @@ if any(strcmp('fig-s1', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     obj_plot(1, 1).set_order_options(options_1.order{:});
     y_lims = getlimoptions('Y', [0 5], 3, '%.1f');
     obj_plot(1, 1).axe_property(y_lims{:}, options_1.axis{:});
+    
+    data_y_n = raw_data_1.measure(:, :, 7:end);
+    data_y_n(:, :, contains(id_metrics_1(7:end), 'MAN')) = data_y_n(:, :, contains(id_metrics_1(7:end), 'MAN')) ./ raw_data_1.range_class.';
+    data_y_n(:, :, contains(id_metrics_1(7:end), 'EUC')) = data_y_n(:, :, contains(id_metrics_1(7:end), 'EUC')) ./ sqrt(raw_data_1.range_class.');
+    data_lightness = repelem(raw_data_1.range_class.', 1, raw_data_1.n_sim, 3);
+    obj_plot(1, 2) = gramm('x', data_x(:), 'y', data_y_n(:), 'lightness', data_lightness(:));
+    obj_plot(1, 2).stat_violin(options_1.stat_violin{:});
+    obj_plot(1, 2).set_names('x', '', 'y', 'Similarity between vectors', 'lightness', '');
+    obj_plot(1, 2).set_layout_options('position', [0.25 0 0.25 0.4], 'legend_position', [0.15 0.31 0.1 0.1]);
+    obj_plot(1, 2).set_color_options(options_1.color{:});
+    obj_plot(1, 2).set_point_options(options_1.point{:});
+    obj_plot(1, 2).set_line_options(options_1.line{:});
+    obj_plot(1, 2).set_text_options(options_1.text{:});
+    obj_plot(1, 2).set_order_options(options_1.order{:});
+    y_lims = getlimoptions('Y', [0 2], 3, '%.1f');
+    obj_plot(1, 2).axe_property(y_lims{:}, options_1.axis{:});
     
     file_name = 'class_vector_sim_compare_noise.mat';
     raw_data_2 = load([default_options.folder.data file_name]);
@@ -935,34 +962,34 @@ if any(strcmp('fig-s1', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     data_x = repelem(raw_data_2.range_means.', 1, raw_data_2.n_metric);
     data_y = range_right - range_left;
     data_color = repelem(id_metrics_2, raw_data_2.n_range_means, 1);
-    obj_plot(1, 2) = gramm('x', data_x(:), 'y', data_y(:), 'color', data_color(:));
-    obj_plot(1, 2).geom_line();
-    obj_plot(1, 2).geom_point();
-    y_lims = getlimoptions('Y', [1 2], 3, '%.1f');
-    obj_plot(1, 2).axe_property(y_lims{:}, options_2.axis{:});
-    obj_plot(1, 2).set_names('x', 'Base mean', 'y', 'Dynamic range', 'color', '');
-    obj_plot(1, 2).set_layout_options('position', [0.3 0 0.3 0.4], 'legend', false);
-    obj_plot(1, 2).set_color_options(options_2.color{:});
-    obj_plot(1, 2).set_point_options(options_2.point{:});
-    obj_plot(1, 2).set_line_options(options_2.line{:});
-    obj_plot(1, 2).set_text_options(options_2.text{:});
-    obj_plot(1, 2).set_order_options(options_2.order{:});
-    
-    data_y = var_mid;
     obj_plot(1, 3) = gramm('x', data_x(:), 'y', data_y(:), 'color', data_color(:));
     obj_plot(1, 3).geom_line();
     obj_plot(1, 3).geom_point();
-    y_lims = getlimoptions('Y', [0.1 0.3], 3, '%.1f');
+    y_lims = getlimoptions('Y', [1 2], 3, '%.1f');
     obj_plot(1, 3).axe_property(y_lims{:}, options_2.axis{:});
-    obj_plot(1, 3).set_names('x', 'Base mean', 'y', 'Variability at mid range', 'color', '');
-    obj_plot(1, 3).set_layout_options('position', [0.6 0 0.3 0.4], 'legend_position', [0.9 0.18 0.1 0.15]);
+    obj_plot(1, 3).set_names('x', 'Base mean', 'y', 'Dynamic range', 'color', '');
+    obj_plot(1, 3).set_layout_options('position', [0.5 0 0.25 0.4], 'legend', false);
     obj_plot(1, 3).set_color_options(options_2.color{:});
     obj_plot(1, 3).set_point_options(options_2.point{:});
     obj_plot(1, 3).set_line_options(options_2.line{:});
     obj_plot(1, 3).set_text_options(options_2.text{:});
     obj_plot(1, 3).set_order_options(options_2.order{:});
     
-    handle_fig = figure('Position', [0 0 1200 1200]);
+    data_y = var_mid;
+    obj_plot(1, 4) = gramm('x', data_x(:), 'y', data_y(:), 'color', data_color(:));
+    obj_plot(1, 4).geom_line();
+    obj_plot(1, 4).geom_point();
+    y_lims = getlimoptions('Y', [0.1 0.3], 3, '%.1f');
+    obj_plot(1, 4).axe_property(y_lims{:}, options_2.axis{:});
+    obj_plot(1, 4).set_names('x', 'Base mean', 'y', 'Variability at mid range', 'color', '');
+    obj_plot(1, 4).set_layout_options('position', [0.75 0 0.25 0.4], 'legend_position', [0.9 0.08 0.1 0.12]);
+    obj_plot(1, 4).set_color_options(options_2.color{:});
+    obj_plot(1, 4).set_point_options(options_2.point{:});
+    obj_plot(1, 4).set_line_options(options_2.line{:});
+    obj_plot(1, 4).set_text_options(options_2.text{:});
+    obj_plot(1, 4).set_order_options(options_2.order{:});
+    
+    handle_fig = figure('Position', [0 0 1350 1200]);
     rng('default');
     obj_plot.draw();
     
@@ -977,23 +1004,36 @@ if any(strcmp('fig-s1', plots_to_gen)) || any(strcmp('all', plots_to_gen))
         obj_plot(1, 1).results.stat_violin(1).fill_handle(i_metric).FaceColor = options_1.color{2}(2 * i_metric - 1, :);
         obj_plot(1, 1).results.stat_violin(2).point_handle(i_metric).MarkerFaceColor = options_1.color{2}(2 * i_metric, :);
         obj_plot(1, 1).results.stat_violin(2).fill_handle(i_metric).FaceColor = options_1.color{2}(2 * i_metric, :);
+        
+        [~, p] = ttest2(squeeze(data_y_n(1, :, i_metric)), squeeze(data_y_n(2, :, i_metric)));
+        text(i_metric, 1.8, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.extra_text{:});
+        mu = mean(data_y_n(:, :, i_metric), 2);
+        text(i_metric - 0.2, 1.6, sprintf('mu=%.4f', mu(1)), 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.extra_text{:});
+        text(i_metric + 0.2, 1.4, sprintf('mu=%.4f', mu(2)), 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.extra_text{:});
+        text(i_metric, -0.1, id_metrics_1{i_metric + 6}, 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.xlabels{:});
+        obj_plot(1, 2).results.stat_violin(1).point_handle(i_metric).MarkerFaceColor = options_1.color{2}(2 * i_metric - 1, :);
+        obj_plot(1, 2).results.stat_violin(1).fill_handle(i_metric).FaceColor = options_1.color{2}(2 * i_metric - 1, :);
+        obj_plot(1, 2).results.stat_violin(2).point_handle(i_metric).MarkerFaceColor = options_1.color{2}(2 * i_metric, :);
+        obj_plot(1, 2).results.stat_violin(2).fill_handle(i_metric).FaceColor = options_1.color{2}(2 * i_metric, :);
     end
     obj_plot(1, 1).facet_axes_handles.XAxis.Visible = 'off';
-    obj_plot(1, 1).legend_axe_handle.Children(3).String = '2 classes';
-    obj_plot(1, 1).legend_axe_handle.Children(4).Color = [0.3 0.3 0.3];
-    obj_plot(1, 1).legend_axe_handle.Children(4).LineWidth = 6;
-    obj_plot(1, 1).legend_axe_handle.Children(1).String = '5 classes';
-    obj_plot(1, 1).legend_axe_handle.Children(2).Color = [0.6 0.6 0.6];
-    obj_plot(1, 1).legend_axe_handle.Children(2).LineWidth = 6;
+    obj_plot(1, 2).facet_axes_handles.XAxis.Visible = 'off';
+    obj_plot(1, 2).legend_axe_handle.Children(3).String = '2 classes';
+    obj_plot(1, 2).legend_axe_handle.Children(4).Color = [0.3 0.3 0.3];
+    obj_plot(1, 2).legend_axe_handle.Children(4).LineWidth = 6;
+    obj_plot(1, 2).legend_axe_handle.Children(1).String = '5 classes';
+    obj_plot(1, 2).legend_axe_handle.Children(2).Color = [0.6 0.6 0.6];
+    obj_plot(1, 2).legend_axe_handle.Children(2).LineWidth = 6;
     
-    obj_plot(1, 3).legend_axe_handle.Children(2).LineWidth = 6;
-    obj_plot(1, 3).legend_axe_handle.Children(4).LineWidth = 6;
-    obj_plot(1, 3).legend_axe_handle.Children(6).LineWidth = 6;
+    obj_plot(1, 4).legend_axe_handle.Children(2).LineWidth = 6;
+    obj_plot(1, 4).legend_axe_handle.Children(4).LineWidth = 6;
+    obj_plot(1, 4).legend_axe_handle.Children(6).LineWidth = 6;
     
     annotation(handle_fig, 'textbox', [0.00 0.97 0.05 0.05], 'String', 'a', default_options.annotation{:});
-    annotation(handle_fig, 'textbox', [0.00 0.42 0.05 0.05], 'String', 'b', default_options.annotation{:});
-    annotation(handle_fig, 'textbox', [0.29 0.42 0.05 0.05], 'String', 'c', default_options.annotation{:});
-    annotation(handle_fig, 'textbox', [0.59 0.42 0.05 0.05], 'String', 'd', default_options.annotation{:});
+    annotation(handle_fig, 'textbox', [0.00 0.41 0.05 0.05], 'String', 'b', default_options.annotation{:});
+    annotation(handle_fig, 'textbox', [0.24 0.41 0.05 0.05], 'String', 'c', default_options.annotation{:});
+    annotation(handle_fig, 'textbox', [0.49 0.41 0.05 0.05], 'String', 'd', default_options.annotation{:});
+    annotation(handle_fig, 'textbox', [0.74 0.41 0.05 0.05], 'String', 'e', default_options.annotation{:});
     exportgraph(obj_plot, default_options.folder.plot, plot_name, handle_fig)
     clearvars -except plots_to_gen default_options
 end
@@ -1587,7 +1627,66 @@ if any(strcmp('fig-s5', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     exportgraph(obj_plot, default_options.folder.plot, plot_name, handle_fig)
     clearvars -except plots_to_gen default_options
 end
+
+% Supplementary Figure 6
+if any(strcmp('fig-s6', plots_to_gen)) || any(strcmp('all', plots_to_gen))
+    plot_name = 'fig-s6';
     
+    file_name = 'class_vector_chance_level.mat';
+    raw_data_1 = load([default_options.folder.data file_name]);
+    id_metrics_1 = cellfun(@upper, raw_data_1.metrics, 'UniformOutput', false);
+    id_metrics_1(contains(id_metrics_1, 'MAN_O')) = {'MAN*'};
+    id_metrics_1(contains(id_metrics_1, 'EUC_O')) = {'EUC*'};
+    id_metrics_1(contains(id_metrics_1, 'CHEB_O')) = {'CHEB*'};
+    options_1 = default_options;
+    options_1.color{2} = generatecolormap(4:6, 2);
+    options_1.color{4} = 3;
+    options_1.color{6} = 2;
+    data_x = repmat(reshape(id_metrics_1(7:end), 1, 1, []), raw_data_1.n_range_class, raw_data_1.n_sim);
+    data_y = raw_data_1.measure(:, :, 7:end);
+    data_y(:, :, contains(id_metrics_1(7:end), 'MAN')) = data_y(:, :, contains(id_metrics_1(7:end), 'MAN')) ./ raw_data_1.range_class.';
+    data_y(:, :, contains(id_metrics_1(7:end), 'EUC')) = data_y(:, :, contains(id_metrics_1(7:end), 'EUC')) ./ sqrt(raw_data_1.range_class.');
+    data_lightness = repelem(raw_data_1.range_class.', 1, raw_data_1.n_sim, 3);
+    obj_plot(1, 1) = gramm('x', data_x(:), 'y', data_y(:), 'lightness', data_lightness(:));
+    obj_plot(1, 1).stat_violin(options_1.stat_violin{:});
+    obj_plot(1, 1).set_names('x', 'Normalization = sqrt(number of classes)', 'y', 'Similarity between vectors', 'lightness', '');
+    obj_plot(1, 1).set_layout_options('position', [0 0 0.5 0.95], 'legend_position', [0.7 0.8 0.2 0.2]);
+    obj_plot(1, 1).set_color_options(options_1.color{:});
+    obj_plot(1, 1).set_point_options(options_1.point{:});
+    obj_plot(1, 1).set_line_options(options_1.line{:});
+    obj_plot(1, 1).set_text_options(options_1.text{:});
+    obj_plot(1, 1).set_order_options(options_1.order{:});
+    y_lims = getlimoptions('Y', [0 2], 3, '%.1f');
+    obj_plot(1, 1).axe_property(y_lims{:}, options_1.axis{:});
+    
+    handle_fig = figure('Position', [0 0 450 450]);
+    rng('default');
+    obj_plot.draw();
+    
+    for i_metric = 1:3
+        [~, p] = ttest2(squeeze(data_y(1, :, i_metric)), squeeze(data_y(2, :, i_metric)));
+        text(i_metric, 1.8, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        mu = mean(data_y(:, :, i_metric), 2);
+        text(i_metric - 0.2, 1.6, sprintf('mu=%.4f', mu(1)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        text(i_metric + 0.2, 1.4, sprintf('mu=%.4f', mu(2)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        text(i_metric, -0.1, id_metrics_1{i_metric + 6}, 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
+        obj_plot(1, 1).results.stat_violin(1).point_handle(i_metric).MarkerFaceColor = options_1.color{2}(2 * i_metric - 1, :);
+        obj_plot(1, 1).results.stat_violin(1).fill_handle(i_metric).FaceColor = options_1.color{2}(2 * i_metric - 1, :);
+        obj_plot(1, 1).results.stat_violin(2).point_handle(i_metric).MarkerFaceColor = options_1.color{2}(2 * i_metric, :);
+        obj_plot(1, 1).results.stat_violin(2).fill_handle(i_metric).FaceColor = options_1.color{2}(2 * i_metric, :);
+    end
+    obj_plot(1, 1).facet_axes_handles.XAxis.Visible = 'off';
+    obj_plot(1, 1).legend_axe_handle.Children(3).String = '2 classes';
+    obj_plot(1, 1).legend_axe_handle.Children(4).Color = [0.3 0.3 0.3];
+    obj_plot(1, 1).legend_axe_handle.Children(4).LineWidth = 6;
+    obj_plot(1, 1).legend_axe_handle.Children(1).String = '5 classes';
+    obj_plot(1, 1).legend_axe_handle.Children(2).Color = [0.6 0.6 0.6];
+    obj_plot(1, 1).legend_axe_handle.Children(2).LineWidth = 6;
+  
+    exportgraph(obj_plot, default_options.folder.plot, plot_name, handle_fig)
+    clearvars -except plots_to_gen default_options
+end
+
 end
 
 function [range_left, range_right, range_mid, mean_mid, sd_mid] = calculatedrvar(data, range_noise)
