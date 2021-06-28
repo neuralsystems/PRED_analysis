@@ -639,36 +639,46 @@ if ~exist(file_name, 'file') || recalculate
     fprintf('Running [CSCVCONN]...');
     schlegel(recalculate)
     load('data\schlegel_2021\processed_data_schlegel.mat', 'processed_data', 'id_*', 'n_*');
-    measure.full = computesimilaritymetric(processed_data.full, 'pred_cv');
+    
+    measure.full = fastpredmod(processed_data.full);
+
+    avg_data = nan(n_database, n_celltype, n_glom);
+    for i_celltype = 1:n_celltype
+        i_connectivity = contains(id_connectivity, id_celltype{i_celltype});
+        temp_data = removeallnandims(processed_data.full(:, i_connectivity, :));
+        if size(temp_data, 1) >= 2
+            avg_data(:, i_celltype, :) = nanmean(temp_data, 2);
+        end
+    end
+    measure.by_celltype_avg = fastpredmod(avg_data);
+    
+    avg_data = nan(n_database, n_tract, n_glom);
+    for i_tract = 1:n_tract
+        i_connectivity = contains(id_connectivity, id_tract{i_tract});
+        temp_data = removeallnandims(processed_data.full(:, i_connectivity, :));
+        if size(temp_data, 1) >= 2
+            avg_data(:, i_tract, :) = nanmean(temp_data, 2);
+        end
+    end
+    measure.by_tract_avg = fastpredmod(avg_data);
+
+    avg_data = nan(n_database, n_region, n_glom);
+    for i_region = 1:n_region
+        i_connectivity = contains(id_connectivity, id_region{i_region});
+        temp_data = removeallnandims(processed_data.full(:, i_connectivity, :));
+        if size(temp_data, 1) >= 2
+            avg_data(:, i_region, :) = nanmean(temp_data, 2);
+        end
+    end
+    measure.by_region_avg = fastpredmod(avg_data);
+    
     for i_database = 1:n_database
+        measure.connectivity{i_database} = computesimilaritymetric(squeeze(processed_data.connectivity(i_database, :, :, :)), 'pred_cs');
         measure.celltype{i_database} = computesimilaritymetric(squeeze(processed_data.celltype(i_database, :, :, :)), 'pred_cs');
         measure.tract{i_database} = computesimilaritymetric(squeeze(processed_data.tract(i_database, :, :, :)), 'pred_cs');
         measure.region{i_database} = computesimilaritymetric(squeeze(processed_data.region(i_database, :, :, :)), 'pred_cs');
     end
-    measure.by_celltype = nan(1, n_celltype);
-    for i_celltype = 1:n_celltype
-        i_connectivity = contains(id_connectivity, id_celltype{i_celltype});
-        temp_data = removeallnandims(processed_data.full(:, i_connectivity, :));
-        if size(temp_data, 1) >= 2 && size(temp_data, 2) >= 2
-            measure.by_celltype(i_celltype) = computesimilaritymetric(temp_data, 'pred_cv');
-        end
-    end
-    measure.by_tract = nan(1, n_tract);
-    for i_tract = 1:n_tract
-        i_connectivity = contains(id_connectivity, id_tract{i_tract});
-        temp_data = removeallnandims(processed_data.full(:, i_connectivity, :));
-        if size(temp_data, 1) >= 2 && size(temp_data, 2) >= 2
-            measure.by_tract(i_tract) = computesimilaritymetric(temp_data, 'pred_cv');
-        end
-    end
-    measure.by_region = nan(1, n_region);
-    for i_region = 1:n_region
-        i_connectivity = contains(id_connectivity, id_region{i_region});
-        temp_data = removeallnandims(processed_data.full(:, i_connectivity, :));
-        if size(temp_data, 1) >= 2 && size(temp_data, 2) >= 2
-            measure.by_region(i_region) = computesimilaritymetric(temp_data, 'pred_cv');
-        end
-    end
+    
     save(file_name, 'measure*', 'n_*', 'id_*')
     fprintf('Done!! Time: %s\n', duration([0, 0, toc(t)]));
 end
@@ -726,18 +736,33 @@ for i_noise = 1:n_range_noise
 end
 end
 
-function data = removeallnandims(data)
-n_dims = ndims(data);
-    function all_nan_dims = findalldim(data, dims)
-        if isempty(dims)
-            all_nan_dims = data;
-        else
-            all_nan_dims = findalldim(all(data, dims(1)), dims(2:end));
-        end
+function s = fastpredmod(data)
+data = removeallnandims(data);
+data = cellfun(@(x) reshape(x, 1, []), num2cell(data, 3), 'UniformOutput', false);
+[n_row, n_col] = size(data);
+% find all row pairs
+pair_row = nchoosek(1:n_row, 2);
+n_pair_row = size(pair_row, 1);
+% find all column pairs
+pair_col = nchoosek(1:n_col, 2);
+n_pair_col = size(pair_col, 1);
+distance = 'squaredeuclidean';
+    function s = computepred(data, distance)
+        row_1 = data(1, :);
+        row_2 = data(2, :);
+        pred_fn = @(d1, d2) (d2 - d1) ./ (d2 + d1);
+        d_1 = arrayfun(@(x) pdist([row_2{x}; row_1{x}], distance), 1:2);
+        d_2 = arrayfun(@(x) pdist([row_2{end - x + 1}; row_1{x}], distance), 1:2);
+        s = pred_fn(mean(d_1), mean(d_2));
     end
-for i_dim = 1:n_dims
-    subs_data = repelem({':'}, 1, n_dims);
-    subs_data{i_dim} = ~findalldim(isnan(data), setdiff(1:n_dims, i_dim));
-    data = subsref(data, substruct('()', subs_data));
+
+s = nan(n_pair_row, n_pair_col);
+for i_pair_row = 1:n_pair_row
+    for i_pair_col = 1:n_pair_col
+        temp_data = [data(pair_row(i_pair_row, 1), pair_col(i_pair_col, :)); data(pair_row(i_pair_row, 2), pair_col(i_pair_col, :))];
+        if ~any(cellfun(@isempty, temp_data(:)))
+            s(i_pair_row, i_pair_col) = computepred(temp_data, distance);
+        end % check for empty cells
+    end
 end
 end

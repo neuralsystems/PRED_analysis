@@ -57,7 +57,7 @@ if ~exist(file_name, 'file') || recalc
     n_celltype_lhn = max(cellfun(@length, id_celltype_lhn));
     
     % size decided using maximum observed values
-    processed_data.full = nan(n_database, n_connectivity_lhn, n_connectivity, n_glom);
+    processed_data.connectivity = nan(n_database, n_connectivity_lhn, n_connectivity, n_glom);
     processed_data.celltype = nan(n_database, n_celltype_lhn, n_celltype, n_glom);
     processed_data.tract = nan(n_database, n_tract_lhn, n_tract, n_glom);
     processed_data.region = nan(n_database, n_region_lhn, n_region, n_glom);
@@ -74,12 +74,12 @@ if ~exist(file_name, 'file') || recalc
         i_region_lhn = contains(id_region_lhn{i_region}, temp_data{i_cell, 9});
         i_celltype_lhn = contains(id_celltype_lhn{i_celltype}, temp_data{i_cell, 9});
 
-        processed_data.full(i_database, i_connectivity_lhn, i_connectivity, i_glom) = temp_data{i_cell, 4};
+        processed_data.connectivity(i_database, i_connectivity_lhn, i_connectivity, i_glom) = temp_data{i_cell, 4};
         processed_data.celltype(i_database, i_celltype_lhn, i_celltype, i_glom) = temp_data{i_cell, 4};
         processed_data.tract(i_database, i_tract_lhn, i_tract, i_glom) = temp_data{i_cell, 4};
         processed_data.region(i_database, i_region_lhn, i_region, i_glom) = temp_data{i_cell, 4};
     end
-    processed_data.full = squeeze(nanmean(processed_data.full, 2));
+    processed_data.full = squeeze(nanmean(processed_data.connectivity, 2));
     save(file_name, 'processed_data', 'id_*', 'n_*')
 end
 end

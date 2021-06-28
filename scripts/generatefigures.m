@@ -715,12 +715,14 @@ if any(strcmp('fig-7', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     
     [~, p] = cellfun(@(x) ttest(x(:), 0), raw_data_1.measure);
     p = p(id_sorted);
+    n_x = cellfun(@(x) sum(~isnan(x)), raw_data_1.measure);
+    n_x = n_x(id_sorted);
     means = cellfun(@nanmean, raw_data_1.measure);
     sigmas = cellfun(@nanstd, raw_data_1.measure);
     means = means(id_sorted);
     sigmas = sigmas(id_sorted);
     for i_odor = 1:raw_data_1.n_odor
-        text(i_odor, means(i_odor) + (-1) ^ mod(i_odor, 2) * 0.3, sprintf('P=%.2g', p(i_odor)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        text(i_odor, means(i_odor) + (-1) ^ mod(i_odor, 2) * 0.3, sprintf('P=%.2g,n=%d', p(i_odor), n_x(i_odor)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
         text(i_odor, means(i_odor) + (-1) ^ mod(i_odor, 2) * 0.2, sprintf('%.4f±%.4f', means(i_odor), sigmas(i_odor)), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
         text(i_odor, -0.575, id_odor_sorted{i_odor}, 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
     end
@@ -780,14 +782,15 @@ if any(strcmp('fig-8', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     file_name = 'class_sample_vector_data_conn_schlegel.mat';
     raw_data_1 = load([default_options.folder.data file_name]);
     options_1 = default_options;
-    
+    options_1.color{2} = generatecolormap(1:2, 2);
+    options_1.color{6} = 2;
     % per cell type across databases
-    data_x = repelem({'cell type'; 'tract'; 'region'}, [raw_data_1.n_celltype, raw_data_1.n_tract, raw_data_1.n_region]);
-    data_y = [raw_data_1.measure.by_celltype, raw_data_1.measure.by_tract, raw_data_1.measure.by_region];
+    data_x = repelem({'Connectivity type', 'Cell type', 'Tract', 'Region'}, [length(raw_data_1.measure.full), length(raw_data_1.measure.by_celltype_avg), length(raw_data_1.measure.by_tract_avg), length(raw_data_1.measure.by_region_avg)]);
+    data_y = [raw_data_1.measure.full, raw_data_1.measure.by_celltype_avg, raw_data_1.measure.by_tract_avg, raw_data_1.measure.by_region_avg];
+    
     obj_plot(1, 1) = gramm('x', data_x(:), 'y', data_y(:));
     obj_plot(1, 1).stat_violin(options_1.stat_violin{:});
-    obj_plot(1, 1).geom_hline('yintercept', raw_data_1.measure.full, 'style', 'r--');
-    obj_plot(1, 1).set_names('x', '', 'y', 'Similarity between databases');
+    obj_plot(1, 1).set_names('x', '', 'y', 'class-vector PRED');
     obj_plot(1, 1).set_layout_options('position', [0 0 0.4 0.95]);
     obj_plot(1, 1).set_color_options(options_1.color{:});
     obj_plot(1, 1).set_point_options(options_1.point{:});
@@ -797,13 +800,31 @@ if any(strcmp('fig-8', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     y_lims = getlimoptions('Y', [-0.5 1], 4, '%.1f');
     obj_plot(1, 1).axe_property(y_lims{:}, options_1.axis{:});
     
-    % per database grouped by cell type
-    data_x = repelem(raw_data_1.id_database, cellfun(@length, raw_data_1.measure.celltype));
-    data_y = cell2mat(raw_data_1.measure.celltype);
-    obj_plot(1, 2) = gramm('x', data_x(:), 'y', data_y(:));
+    % per database across neurons
+    n_x = cellfun(@length, raw_data_1.measure.connectivity);
+    data_x = repelem({'Connectivity type'}, 1, sum(n_x));
+    data_y = cell2mat(raw_data_1.measure.connectivity);
+    data_lightness = repelem(raw_data_1.id_database, n_x);
+    
+    n_x = cellfun(@length, raw_data_1.measure.celltype);
+    data_x = [data_x, repelem({'Cell type'}, 1, sum(n_x))];
+    data_y = [data_y, cell2mat(raw_data_1.measure.celltype)];
+    data_lightness = [data_lightness; repelem(raw_data_1.id_database, n_x)];
+    
+    n_x = cellfun(@length, raw_data_1.measure.tract);
+    data_x = [data_x, repelem({'Tract'}, 1, sum(n_x))];
+    data_y = [data_y, cell2mat(raw_data_1.measure.tract)];
+    data_lightness = [data_lightness; repelem(raw_data_1.id_database, n_x)];
+    
+    n_x = cellfun(@length, raw_data_1.measure.region);
+    data_x = [data_x, repelem({'Region'}, 1, sum(n_x))];
+    data_y = [data_y, cell2mat(raw_data_1.measure.region)];
+    data_lightness = [data_lightness; repelem(raw_data_1.id_database, n_x)];
+    
+    obj_plot(1, 2) = gramm('x', data_x(:), 'y', data_y(:), 'lightness', data_lightness(:));
     obj_plot(1, 2).stat_violin(options_1.stat_violin{:});
-    obj_plot(1, 2).set_names('x', '', 'y', 'Separability across cell types');
-    obj_plot(1, 2).set_layout_options('position', [0.4 0 0.2 0.95]);
+    obj_plot(1, 2).set_names('x', '', 'y', 'class-sample PRED', 'lightness', '');
+    obj_plot(1, 2).set_layout_options('position', [0.4 0 0.6 0.95], 'legend_position', [0.9 0.75 0.1 0.2]);
     obj_plot(1, 2).set_color_options(options_1.color{:});
     obj_plot(1, 2).set_point_options(options_1.point{:});
     obj_plot(1, 2).set_line_options(options_1.line{:});
@@ -812,88 +833,42 @@ if any(strcmp('fig-8', plots_to_gen)) || any(strcmp('all', plots_to_gen))
     y_lims = getlimoptions('Y', [-0.5 1], 4, '%.1f');
     obj_plot(1, 2).axe_property(y_lims{:}, options_1.axis{:});
     
-    % per database grouped by tract
-    data_x = repelem(raw_data_1.id_database, cellfun(@length, raw_data_1.measure.tract));
-    data_y = cell2mat(raw_data_1.measure.tract);
-    obj_plot(1, 3) = gramm('x', data_x(:), 'y', data_y(:));
-    obj_plot(1, 3).stat_violin(options_1.stat_violin{:});
-    obj_plot(1, 3).set_names('x', '', 'y', 'Separability across tracts');
-    obj_plot(1, 3).set_layout_options('position', [0.6 0 0.2 0.95]);
-    obj_plot(1, 3).set_color_options(options_1.color{:});
-    obj_plot(1, 3).set_point_options(options_1.point{:});
-    obj_plot(1, 3).set_line_options(options_1.line{:});
-    obj_plot(1, 3).set_text_options(options_1.text{:});
-    obj_plot(1, 3).set_order_options(options_1.order{:});
-    y_lims = getlimoptions('Y', [-0.5 1], 4, '%.1f');
-    obj_plot(1, 3).axe_property(y_lims{:}, options_1.axis{:});
-    
-    % per database grouped by region
-    data_x = repelem(raw_data_1.id_database, cellfun(@length, raw_data_1.measure.region));
-    data_y = cell2mat(raw_data_1.measure.region);
-    obj_plot(1, 4) = gramm('x', data_x(:), 'y', data_y(:));
-    obj_plot(1, 4).stat_violin(options_1.stat_violin{:});
-    obj_plot(1, 4).set_names('x', '', 'y', 'Separability across regions');
-    obj_plot(1, 4).set_layout_options('position', [0.8 0 0.2 0.95]);
-    obj_plot(1, 4).set_color_options(options_1.color{:});
-    obj_plot(1, 4).set_point_options(options_1.point{:});
-    obj_plot(1, 4).set_line_options(options_1.line{:});
-    obj_plot(1, 4).set_text_options(options_1.text{:});
-    obj_plot(1, 4).set_order_options(options_1.order{:});
-    y_lims = getlimoptions('Y', [-0.5 1], 4, '%.1f');
-    obj_plot(1, 4).axe_property(y_lims{:}, options_1.axis{:});
-    
     handle_fig = figure('Position', [0 0 1500 450]);
     rng('default');
     obj_plot.draw();
     
-    id_group = {'celltype', 'tract', 'region'};
+    id_group = {'Connectivity Type', 'Cell Type', 'Tract', 'Region'};
+    id_group_sub = {'full', 'by_celltype_avg', 'by_tract_avg', 'by_region_avg'};
     for i_group = 1:length(id_group)
-        [~, p] = ttest(raw_data_1.measure.(['by_', id_group{i_group}])(:), 0);
-        mu = nanmean(raw_data_1.measure.(['by_', id_group{i_group}])(:));
-        sigma = nanstd(raw_data_1.measure.(['by_', id_group{i_group}])(:));
-        text(i_group, 0.9, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
+        [~, p] = ttest(raw_data_1.measure.(id_group_sub{i_group})(:), 0);
+        n = sum(~isnan(raw_data_1.measure.(id_group_sub{i_group})));
+        mu = nanmean(raw_data_1.measure.(id_group_sub{i_group}));
+        sigma = nanstd(raw_data_1.measure.(id_group_sub{i_group}));
+        text(i_group, 0.9, sprintf('P=%.2g,n=%d', p, n), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
         text(i_group, 0.8, sprintf('%.4f±%.4f', mu, sigma), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.extra_text{:});
         text(i_group, -0.575, id_group{i_group}, 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:});
     end
-    text(1, raw_data_1.measure.full + 0.06, 'ungrouped', 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:}, 'Color', options_1.color{2}(1, :));
-    text(3.5, raw_data_1.measure.full + 0.06, sprintf('mu=%.4f',raw_data_1.measure.full), 'Parent', obj_plot(1, 1).facet_axes_handles, options_1.xlabels{:}, 'Color', options_1.color{2}(1, :));
-    obj_plot(1).facet_axes_handles.Children(10).LineWidth = 3;
     obj_plot(1, 1).facet_axes_handles.XAxis.Visible = 'off';
     
-    for i_database = 1:length(raw_data_1.id_database)
-        [~, p] = ttest(raw_data_1.measure.celltype{i_database}(:), 0);
-        mu = nanmean(raw_data_1.measure.celltype{i_database}(:));
-        sigma = nanstd(raw_data_1.measure.celltype{i_database}(:));
-        text(i_database, 0.9, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.extra_text{:});
-        text(i_database, 0.8, sprintf('%.4f±%.4f', mu, sigma), 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.extra_text{:});
-        text(i_database, -0.575, raw_data_1.id_database{i_database}, 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.xlabels{:});
+    id_group_sub = {'connectivity', 'celltype', 'tract', 'region'};
+    for i_group = 1:length(id_group)
+        for i_database = 1:length(raw_data_1.id_database)
+            [~, p] = ttest(raw_data_1.measure.(id_group_sub{i_group}){i_database}(:), 0);
+            n = sum(~isnan(raw_data_1.measure.(id_group_sub{i_group}){i_database}));
+            mu = nanmean(raw_data_1.measure.(id_group_sub{i_group}){i_database}(:));
+            sigma = nanstd(raw_data_1.measure.(id_group_sub{i_group}){i_database}(:));
+            text(i_group + 0.2 * ((-1) ^ i_database), -0.3 + 0.2 * (i_database - 1), sprintf('P=%.2g,n=%d', p, n), 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.extra_text{:});
+            text(i_group + 0.2 * ((-1) ^ i_database), -0.4 + 0.2 * (i_database - 1), sprintf('%.4f±%.4f', mu, sigma), 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.extra_text{:});
+        end
+        text(i_group, -0.575, id_group{i_group}, 'Parent', obj_plot(1, 2).facet_axes_handles, options_1.xlabels{:});
     end
     obj_plot(1, 2).facet_axes_handles.XAxis.Visible = 'off';
-    
-    for i_database = 1:length(raw_data_1.id_database)
-        [~, p] = ttest(raw_data_1.measure.tract{i_database}(:), 0);
-        mu = nanmean(raw_data_1.measure.tract{i_database}(:));
-        sigma = nanstd(raw_data_1.measure.tract{i_database}(:));
-        text(i_database, 0.9, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 3).facet_axes_handles, options_1.extra_text{:});
-        text(i_database, 0.8, sprintf('%.4f±%.4f', mu, sigma), 'Parent', obj_plot(1, 3).facet_axes_handles, options_1.extra_text{:});
-        text(i_database, -0.575, raw_data_1.id_database{i_database}, 'Parent', obj_plot(1, 3).facet_axes_handles, options_1.xlabels{:});
-    end
-    obj_plot(1, 3).facet_axes_handles.XAxis.Visible = 'off';
-    
-    for i_database = 1:length(raw_data_1.id_database)
-        [~, p] = ttest(raw_data_1.measure.region{i_database}(:), 0);
-        mu = nanmean(raw_data_1.measure.region{i_database}(:));
-        sigma = nanstd(raw_data_1.measure.region{i_database}(:));
-        text(i_database, 0.9, sprintf('P=%.2g', p), 'Parent', obj_plot(1, 4).facet_axes_handles, options_1.extra_text{:});
-        text(i_database, 0.8, sprintf('%.4f±%.4f', mu, sigma), 'Parent', obj_plot(1, 4).facet_axes_handles, options_1.extra_text{:});
-        text(i_database, -0.575, raw_data_1.id_database{i_database}, 'Parent', obj_plot(1, 4).facet_axes_handles, options_1.xlabels{:});
-    end
-    obj_plot(1, 4).facet_axes_handles.XAxis.Visible = 'off';
+    obj_plot(1, 2).legend_axe_handle.Children(4).LineWidth = 6;
+    obj_plot(1, 2).legend_axe_handle.Children(2).LineWidth = 6;
 
     annotation(handle_fig, 'textbox', [0.00 0.98 0.05 0.05], 'String', 'a', default_options.annotation{:});
     annotation(handle_fig, 'textbox', [0.39 0.98 0.05 0.05], 'String', 'b', default_options.annotation{:});
-    annotation(handle_fig, 'textbox', [0.59 0.98 0.05 0.05], 'String', 'c', default_options.annotation{:});
-    annotation(handle_fig, 'textbox', [0.79 0.98 0.05 0.05], 'String', 'd', default_options.annotation{:});
+
     exportgraph(obj_plot, default_options.folder.plot, plot_name, handle_fig)
     clearvars -except plots_to_gen default_options
 end
